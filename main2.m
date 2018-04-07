@@ -15,6 +15,13 @@ clc
 close all
 
 live_status = 0; % Change this to 1 to see node generation live on image 
+Video = 1;
+
+if Video == 1
+    Output_Video = VideoWriter('Result');
+    Output_Video.FrameRate = 100;
+    open(Output_Video);
+end
 
 % Defining the whole plot from the given coordinates
 
@@ -119,6 +126,8 @@ txt2 = '\leftarrow Goal Node';
 text(StartNode(1),StartNode(2),txt1)
 text(GoalNode(1),GoalNode(2),txt2)
 
+
+
 % Start BFS algorithm only if status is true (i.e all the points are in
 % free space)
 
@@ -155,6 +164,9 @@ if status
             drawnow
         end
         plot(CurrentNode(1),CurrentNode(2),'.','color','red')
+        if Video == 1
+            writeVideo(Output_Video,getframe);
+        end
         [StatusL, NewNodeL] = ActionMoveLeft(CurrentNode);
         if StatusL == true
             in = insidepoly_halfplane(NewNodeL(1),NewNodeL(2));
@@ -175,6 +187,9 @@ if status
                         drawnow 
                     end
                     plot(NewNodeL(1),NewNodeL(2),'.','color','green')
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
+                    end
                 
                 elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
                     k = find(id_test == NodesInfo(1,6,:));
@@ -213,7 +228,10 @@ if status
                         drawnow 
                     end
                     plot(NewNodeR(1),NewNodeR(2),'.','color','green')
-                
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
+                    end
+                    
                 elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
@@ -251,7 +269,10 @@ if status
                         drawnow 
                     end
                     plot(NewNodeU(1),NewNodeU(2),'.','color','green')
-                
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
+                    end
+                    
                 elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
@@ -289,7 +310,10 @@ if status
                         drawnow 
                     end
                     plot(NewNodeD(1),NewNodeD(2),'.','color','green')
-                
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
+                    end
+                    
                 elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
@@ -327,7 +351,10 @@ if status
                         drawnow 
                     end
                     plot(NewNodeDL(1),NewNodeDL(2),'.','color','green')
-                
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
+                    end
+                    
                 elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
@@ -365,7 +392,10 @@ if status
                         drawnow 
                     end
                     plot(NewNodeDR(1),NewNodeDR(2),'.','color','green')
-                
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
+                    end
+                    
                 elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
@@ -403,7 +433,10 @@ if status
                         drawnow 
                     end
                     plot(NewNodeUL(1),NewNodeUL(2),'.','color','green')
-                
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
+                    end
+                    
                 elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
@@ -441,7 +474,10 @@ if status
                         drawnow 
                     end
                     plot(NewNodeUR(1),NewNodeUR(2),'.','color','green')
-                
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
+                    end
+                    
                 elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
@@ -457,22 +493,28 @@ if status
                     break
                 end   
             end
-        end
+        end    
         
-    min_cost = [inf,0];
-    for y = 1:i-1
-    id_test = getid(Nodes(:,:,y));
-        if (~any(id_test == ClosedNodesInfo(1,1,:)))
-            cost = NodesInfo(1,5,y);
-            if cost<min_cost(1,1)
-                min_cost = [cost , y];
+        min_cost = [inf,0];
+        for y = 1:i-1
+        id_test = getid(Nodes(:,:,y));
+            if (~any(id_test == ClosedNodesInfo(1,1,:)))
+                cost = NodesInfo(1,5,y);
+                if cost<min_cost(1,1)
+                    min_cost = [cost , y];
+                end
             end
+
         end
 
-    end
-
-    j = min_cost(1,2);
-    z = z+1
+        j = min_cost(1,2);
+        z = z+1;
+        if rem(z,10) == 0
+            z
+        end
+            
+            
+        
     end
     
     q = i-1;
@@ -488,14 +530,15 @@ if status
         q = info;
         count = count+1;
         plot(a,b,'.','color','blue')
+        if Video == 1
+            writeVideo(Output_Video,getframe);
+        end
     end
     
-   
-    
+
 end
 
-
-    
 toc
-    
-    
+if Video == 1
+    close(Output_Video)
+end
