@@ -169,22 +169,22 @@ if status
                     h = (sqrt(((NewNodeL(1)-GoalNode(1))^2)+((NewNodeL(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeL;
-                    NodesInfo(:,:,i) = [i,j,g,h,f];
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
                     i = i+1;                    
                     if live_status == 1
                         drawnow 
                     end
                     plot(NewNodeL(1),NewNodeL(2),'.','color','green')
                 
-                elseif  (~any(id_test == ClosedNodesInfo(1,3,:)))
-                    k = find(id_test == NodesInfoSet(1,1,:));
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
                     ctc = NodesInfo(:,3,j);
                     g = ctc+cost_linear;
                     h = sqrt(((NewNodeL(1)-GoalNode(1))^2)+((NewNodeL(2)-GoalNode(2))^2));
                     f = g+h;
                     if cost>f
-                        NodesInfo(:,:,k) = [i,j,g,h,f];
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
                     end
                 end
                 if NewNodeL(1) == GoalNode(1) && NewNodeL(2) == GoalNode(2)
@@ -196,260 +196,273 @@ if status
         [StatusR, NewNodeR] = ActionMoveRight(CurrentNode);
         if StatusR == true
             in = insidepoly_halfplane(NewNodeR(1),NewNodeR(2));
-            id_test = getid(NewNodeL);
+            id_test = getid(NewNodeR);
             % Search if the New Node generated is present in Nodes array or not. 
             if in == false
                 % Save the node only if the node generated in not inside
                 % the obstacle
                 if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_linear;
-                    h = sqrt(((NewNodeR(1)-GoalNode(1))^2)+((NewNodeR(2)-GoalNode(2))^2));
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeR(1)-GoalNode(1))^2)+((NewNodeR(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeR;
-                    NodesInfo(:,:,i) = [i,j,g,h,f];
-                    i = i+1;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
                     if live_status == 1
                         drawnow 
                     end
                     plot(NewNodeR(1),NewNodeR(2),'.','color','green')
-                elseif  ((any(all(bsxfun(@eq,ClosedNodes,NewNodeR)))) == false) && (in == false)
-                    k = find(all(all(bsxfun(@eq,Nodes,NewNodeR))));
+                
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
                     ctc = NodesInfo(:,3,j);
                     g = ctc+cost_linear;
                     h = sqrt(((NewNodeR(1)-GoalNode(1))^2)+((NewNodeR(2)-GoalNode(2))^2));
                     f = g+h;
                     if cost>f
-                        NodesInfo(:,:,k) = [i,j,g,h,f];
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
                     end
                 end
                 if NewNodeR(1) == GoalNode(1) && NewNodeR(2) == GoalNode(2)
                     break
-                end
+                end   
             end
-        end
+        end  
         
         [StatusU, NewNodeU] = ActionMoveUp(CurrentNode);
         if StatusU == true
             in = insidepoly_halfplane(NewNodeU(1),NewNodeU(2));
+            id_test = getid(NewNodeU);
             % Search if the New Node generated is present in Nodes array or not. 
-            if (any(all(bsxfun(@eq,Nodes,NewNodeU)))) == false
+            if in == false
                 % Save the node only if the node generated in not inside
                 % the obstacle
-                if in == false 
+                if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_linear;
-                    h = sqrt(((NewNodeU(1)-GoalNode(1))^2)+((NewNodeU(2)-GoalNode(2))^2));
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeU(1)-GoalNode(1))^2)+((NewNodeU(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeU;
-                    NodesInfo(:,:,i) = [i,j,g,h,f];
-                    i = i+1;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
                     if live_status == 1
                         drawnow 
                     end
                     plot(NewNodeU(1),NewNodeU(2),'.','color','green')
+                
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeU(1)-GoalNode(1))^2)+((NewNodeU(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
-            elseif  ((any(all(bsxfun(@eq,ClosedNodes,NewNodeU)))) == false) && (in == false)
-                k = find(all(all(bsxfun(@eq,Nodes,NewNodeU))));
-                cost = NodesInfo(1,5,k);
-                ctc = NodesInfo(:,3,j);
-                g = ctc+cost_linear;
-                h = sqrt(((NewNodeU(1)-GoalNode(1))^2)+((NewNodeU(2)-GoalNode(2))^2));
-                f = g+h;
-                if cost>f
-                    NodesInfo(:,:,k) = [i,j,g,h,f];
-                end
+                if NewNodeU(1) == GoalNode(1) && NewNodeU(2) == GoalNode(2)
+                    break
+                end   
             end
-            if NewNodeU(1) == GoalNode(1) && NewNodeU(2) == GoalNode(2)
-                break
-            end            
         end
         
         [StatusD, NewNodeD] = ActionMoveDown(CurrentNode);
         if StatusD == true
             in = insidepoly_halfplane(NewNodeD(1),NewNodeD(2));
+            id_test = getid(NewNodeD);
             % Search if the New Node generated is present in Nodes array or not. 
-            if (any(all(bsxfun(@eq,Nodes,NewNodeD)))) == false
+            if in == false
                 % Save the node only if the node generated in not inside
                 % the obstacle
-                if in == false 
+                if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_linear;
-                    h = sqrt(((NewNodeD(1)-GoalNode(1))^2)+((NewNodeD(2)-GoalNode(2))^2));
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeD(1)-GoalNode(1))^2)+((NewNodeD(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeD;
-                    NodesInfo(:,:,i) = [i,j,g,h,f];
-                    i = i+1;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
                     if live_status == 1
                         drawnow 
                     end
                     plot(NewNodeD(1),NewNodeD(2),'.','color','green')
+                
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeD(1)-GoalNode(1))^2)+((NewNodeD(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
-            elseif  ((any(all(bsxfun(@eq,ClosedNodes,NewNodeD)))) == false) && (in == false)
-                k = find(all(all(bsxfun(@eq,Nodes,NewNodeD))));
-                cost = NodesInfo(1,5,k);
-                ctc = NodesInfo(:,3,j);
-                g = ctc+cost_linear;
-                h = sqrt(((NewNodeD(1)-GoalNode(1))^2)+((NewNodeD(2)-GoalNode(2))^2));
-                f = g+h;
-                if cost>f
-                    NodesInfo(:,:,k) = [i,j,g,h,f];
-                end
-            end
-            if NewNodeD(1) == GoalNode(1) && NewNodeD(2) == GoalNode(2)
-                break
+                if NewNodeD(1) == GoalNode(1) && NewNodeD(2) == GoalNode(2)
+                    break
+                end   
             end
         end
         
         [StatusDL, NewNodeDL] = ActionMoveDownLeft(CurrentNode);
         if StatusDL == true
             in = insidepoly_halfplane(NewNodeDL(1),NewNodeDL(2));
+            id_test = getid(NewNodeDL);
             % Search if the New Node generated is present in Nodes array or not. 
-            if (any(all(bsxfun(@eq,Nodes,NewNodeDL)))) == false
+            if in == false
                 % Save the node only if the node generated in not inside
                 % the obstacle
-                if in == false 
+                if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_diag ;
-                    h = sqrt(((NewNodeDL(1)-GoalNode(1))^2)+((NewNodeDL(2)-GoalNode(2))^2));
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeDL(1)-GoalNode(1))^2)+((NewNodeDL(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeDL;
-                    NodesInfo(:,:,i) = [i,j,g,h,f];
-                    i = i+1;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
                     if live_status == 1
                         drawnow 
                     end
                     plot(NewNodeDL(1),NewNodeDL(2),'.','color','green')
+                
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeDL(1)-GoalNode(1))^2)+((NewNodeDL(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
-            elseif  ((any(all(bsxfun(@eq,ClosedNodes,NewNodeDL)))) == false) && (in == false)
-                k = find(all(all(bsxfun(@eq,Nodes,NewNodeDL))));
-                cost = NodesInfo(1,5,k);
-                ctc = NodesInfo(:,3,j);
-                g = ctc+cost_diag ;
-                h = sqrt(((NewNodeDL(1)-GoalNode(1))^2)+((NewNodeDL(2)-GoalNode(2))^2));
-                f = g+h;
-                if cost>f
-                    NodesInfo(:,:,k) = [i,j,g,h,f];
-                end
-            end
-            if NewNodeDL(1) == GoalNode(1) && NewNodeDL(2) == GoalNode(2)
-                break
+                if NewNodeDL(1) == GoalNode(1) && NewNodeDL(2) == GoalNode(2)
+                    break
+                end   
             end
         end
         
         [StatusDR, NewNodeDR] = ActionMoveDownRight(CurrentNode);
         if StatusDR == true
             in = insidepoly_halfplane(NewNodeDR(1),NewNodeDR(2));
+            id_test = getid(NewNodeDR);
             % Search if the New Node generated is present in Nodes array or not. 
-            if (any(all(bsxfun(@eq,Nodes,NewNodeDR)))) == false
+            if in == false
                 % Save the node only if the node generated in not inside
                 % the obstacle
-                if in == false 
+                if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_diag ;
-                    h = sqrt(((NewNodeDR(1)-GoalNode(1))^2)+((NewNodeDR(2)-GoalNode(2))^2));
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeDR(1)-GoalNode(1))^2)+((NewNodeDR(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeDR;
-                    NodesInfo(:,:,i) = [i,j,g,h,f];
-                    i = i+1;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
                     if live_status == 1
                         drawnow 
                     end
                     plot(NewNodeDR(1),NewNodeDR(2),'.','color','green')
+                
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeDR(1)-GoalNode(1))^2)+((NewNodeDR(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
-            elseif  ((any(all(bsxfun(@eq,ClosedNodes,NewNodeDR)))) == false) && (in == false)
-                k = find(all(all(bsxfun(@eq,Nodes,NewNodeDR))));
-                cost = NodesInfo(1,5,k);
-                ctc = NodesInfo(:,3,j);
-                g = ctc+cost_diag ;
-                h = sqrt(((NewNodeDR(1)-GoalNode(1))^2)+((NewNodeDR(2)-GoalNode(2))^2));
-                f = g+h;
-                if cost>f
-                    NodesInfo(:,:,k) = [i,j,g,h,f];
-                end
-            end
-            if NewNodeDR(1) == GoalNode(1) && NewNodeDR(2) == GoalNode(2)
-                break
+                if NewNodeDR(1) == GoalNode(1) && NewNodeDR(2) == GoalNode(2)
+                    break
+                end   
             end
         end
-
+        
         [StatusUL, NewNodeUL] = ActionMoveUpLeft(CurrentNode);
         if StatusUL == true
             in = insidepoly_halfplane(NewNodeUL(1),NewNodeUL(2));
+            id_test = getid(NewNodeUL);
             % Search if the New Node generated is present in Nodes array or not. 
-            if (any(all(bsxfun(@eq,Nodes,NewNodeUL)))) == false
+            if in == false
                 % Save the node only if the node generated in not inside
                 % the obstacle
-                if in == false 
+                if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_diag ;
-                    h = sqrt(((NewNodeUL(1)-GoalNode(1))^2)+((NewNodeUL(2)-GoalNode(2))^2));
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeUL(1)-GoalNode(1))^2)+((NewNodeUL(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeUL;
-                    NodesInfo(:,:,i) = [i,j,g,h,f];
-                    i = i+1;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
                     if live_status == 1
                         drawnow 
                     end
                     plot(NewNodeUL(1),NewNodeUL(2),'.','color','green')
+                
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeUL(1)-GoalNode(1))^2)+((NewNodeUL(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
-            elseif  ((any(all(bsxfun(@eq,ClosedNodes,NewNodeUL)))) == false) && (in == false)
-                k = find(all(all(bsxfun(@eq,Nodes,NewNodeUL))));
-                cost = NodesInfo(1,5,k);
-                ctc = NodesInfo(:,3,j);
-                g = ctc+cost_diag ;
-                h = sqrt(((NewNodeUL(1)-GoalNode(1))^2)+((NewNodeUL(2)-GoalNode(2))^2));
-                f = g+h;
-                if cost>f
-                    NodesInfo(:,:,k) = [i,j,g,h,f];
-                end
-            end
-            if NewNodeUL(1) == GoalNode(1) && NewNodeUL(2) == GoalNode(2)
-                break
+                if NewNodeUL(1) == GoalNode(1) && NewNodeUL(2) == GoalNode(2)
+                    break
+                end   
             end
         end
-     
+        
         [StatusUR, NewNodeUR] = ActionMoveUpRight(CurrentNode);
         if StatusUR == true
             in = insidepoly_halfplane(NewNodeUR(1),NewNodeUR(2));
+            id_test = getid(NewNodeUR);
             % Search if the New Node generated is present in Nodes array or not. 
-            if (any(all(bsxfun(@eq,Nodes,NewNodeUR)))) == false
+            if in == false
                 % Save the node only if the node generated in not inside
                 % the obstacle
-                if in == false 
+                if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_diag ;
-                    h = sqrt(((NewNodeUR(1)-GoalNode(1))^2)+((NewNodeUR(2)-GoalNode(2))^2));
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeUR(1)-GoalNode(1))^2)+((NewNodeUR(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeUR;
-                    NodesInfo(:,:,i) = [i,j,g,h,f];
-                    i = i+1;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
                     if live_status == 1
                         drawnow 
                     end
                     plot(NewNodeUR(1),NewNodeUR(2),'.','color','green')
+                
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeUR(1)-GoalNode(1))^2)+((NewNodeUR(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
-            elseif  ((any(all(bsxfun(@eq,ClosedNodes,NewNodeUR)))) == false) && (in == false)
-                k = find(all(all(bsxfun(@eq,Nodes,NewNodeUR))));
-                cost = NodesInfo(1,5,k);
-                ctc = NodesInfo(:,3,j);
-                g = ctc+cost_diag ;
-                h = sqrt(((NewNodeUR(1)-GoalNode(1))^2)+((NewNodeUR(2)-GoalNode(2))^2));
-                f = g+h;
-                if cost>f
-                    NodesInfo(:,:,k) = [i,j,g,h,f];
-                end
+                if NewNodeUR(1) == GoalNode(1) && NewNodeUR(2) == GoalNode(2)
+                    break
+                end   
             end
-            if NewNodeUR(1) == GoalNode(1) && NewNodeUR(2) == GoalNode(2)
-                break
-            end
-        end  
+        end
         
     min_cost = [inf,0];
     for y = 1:i-1
-
-        if ((any(all(bsxfun(@eq,ClosedNodes,Nodes(:,:,y))))) == false)
+    id_test = getid(Nodes(:,:,y));
+        if (~any(id_test == ClosedNodesInfo(1,1,:)))
             cost = NodesInfo(1,5,y);
             if cost<min_cost(1,1)
                 min_cost = [cost , y];
