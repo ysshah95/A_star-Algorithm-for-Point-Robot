@@ -15,6 +15,13 @@ clc
 close all
 
 live_status = 0; % Change this to 1 to see node generation live on image 
+Video = 1;
+
+if Video == 1
+    Output_Video = VideoWriter('Result');
+    Output_Video.FrameRate = 100;
+    open(Output_Video);
+end
 
 % Defining the whole plot from the given coordinates
 
@@ -107,7 +114,9 @@ tic
 % PLot the start and End node 
 drawnow 
 plot(StartNode(1),StartNode(2),'s','color','green','markers',10)
+drawnow 
 plot(GoalNode(1),GoalNode(2),'s','color','red','markers',10)
+hold on 
 
 txt1 = '\leftarrow Start Node';
 txt2 = '\leftarrow Goal Node';
@@ -117,339 +126,420 @@ txt2 = '\leftarrow Goal Node';
 text(StartNode(1),StartNode(2),txt1)
 text(GoalNode(1),GoalNode(2),txt2)
 
+
+
 % Start BFS algorithm only if status is true (i.e all the points are in
 % free space)
 
-if status
+if status 
     
     % Initialize the variables.
     Nodes = [];
     NodesInfo = [];
-    
     % Initialize the start node.
     Nodes(:,:,1) = StartNode;
+    % Get id of the start Node
+    id = getid(StartNode);    
     % Initialize NodeInfo for start node
-    % NodesInfo = [Node#, ParentNode#,cost]
-    NodesInfo(:,:,1) = [1,0,0]; 
+    % NodesInfo = [Node#, ParentNode#,ctc,ctg,cost,id];
+    NodesInfo(:,:,1) = [1,0,0,0,0,id]; 
+    
+    ClosedNodes = [];
+    ClosedNodesInfo = [];
+    
+    cost_linear = 1;
+    cost_diag = sqrt(2);
     
     % Initialize the child and parent node number variables.
     i = 2; % Child node number variable
     j = 1; % Parent Node Number Variable
-    
-    
-
+    z = 1;
     while true
         % Initialize the parent node in each loop
         CurrentNode = Nodes(:,:,j);
+        ClosedNodes(:,:,z) = CurrentNode;
+        id = getid(CurrentNode);
+        ClosedNodesInfo(:,:,z) = [id];
+        if live_status == 1
+            drawnow
+        end
+        plot(CurrentNode(1),CurrentNode(2),'.','color','red')
+        if Video == 1
+            writeVideo(Output_Video,getframe);
+        end
         [StatusL, NewNodeL] = ActionMoveLeft(CurrentNode);
-        estimated_cost = inf;
         if StatusL == true
-            % Search if the NewNode generated is present in Nodes array or not. 
-            if (any(all(bsxfun(@eq,Nodes,NewNodeL)))) == false
-                c = NewNodeL(1);
-                d = NewNodeL(2);
-                in = insidepoly_halfplane(c,d);
+            in = insidepoly_halfplane(NewNodeL(1),NewNodeL(2));
+            id_test = getid(NewNodeL);
+            % Search if the New Node generated is present in Nodes array or not. 
+            if in == false
                 % Save the node only if the node generated in not inside
                 % the obstacle
-                if in == false 
-                    ctc = NodesInfo(:,5,j);
-                    g = ctc+sqrt(((c-CurrentNode(1))^2)+((d-CurrentNode(2))^2));
-                    h = sqrt(((c-GoalNode(1))^2)+((d-GoalNode(2))^2));
+                if (~any(id_test == NodesInfo(1,6,:))) 
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeL(1)-GoalNode(1))^2)+((NewNodeL(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeL;
-                    NodesInfo(:,:,i) = [i,j,f];
-                end
-            else
-                c = NewNodeL(1);
-                d = NewNodeL(2);
-                in = insidepoly_halfplane(c,d);
-                if in == false 
-                    ctc = NodesInfo(:,5,j);
-                    g = ctc+sqrt(((c-CurrentNode(1))^2)+((d-CurrentNode(2))^2));
-                    h = sqrt(((c-GoalNode(1))^2)+((d-GoalNode(2))^2));
-                    f = g+h;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
+                    if live_status == 1
+                        drawnow 
+                    end
+                    plot(NewNodeL(1),NewNodeL(2),'.','color','green')
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
+                    end
                 
-%                     Nodes(:,:,i) = NewNodeL;
-%                     NodesInfo(:,:,i) = [i,j];
-%                     % Increament the child node variable
-%                     i = i+1;
-%                     % this loop is for live status of node generation 
-%                     if live_status == 1
-%                         drawnow 
-%                     end
-%                     plot(c,d,'.','color','red')
-%                     if NewNodeL(1) == GoalNode(1) && NewNodeL(2) == GoalNode(2)
-%                         break
-%                     end                
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeL(1)-GoalNode(1))^2)+((NewNodeL(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
+                end
+                if NewNodeL(1) == GoalNode(1) && NewNodeL(2) == GoalNode(2)
+                    break
+                end   
             end
         end
 
         [StatusR, NewNodeR] = ActionMoveRight(CurrentNode);
         if StatusR == true
-            if (any(all(bsxfun(@eq,Nodes,NewNodeR)))) == false
-                c = NewNodeR(1);
-                d = NewNodeR(2);
-                in = insidepoly_halfplane(c,d);
-                if in == false
-                    ctc = NodesInfo(:,5,j);
-                    g = ctc+sqrt(((c-CurrentNode(1))^2)+((d-CurrentNode(2))^2));
-                    h = sqrt(((c-GoalNode(1))^2)+((d-GoalNode(2))^2));
+            in = insidepoly_halfplane(NewNodeR(1),NewNodeR(2));
+            id_test = getid(NewNodeR);
+            % Search if the New Node generated is present in Nodes array or not. 
+            if in == false
+                % Save the node only if the node generated in not inside
+                % the obstacle
+                if (~any(id_test == NodesInfo(1,6,:))) 
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeR(1)-GoalNode(1))^2)+((NewNodeR(2)-GoalNode(2))^2)));
                     f = g+h;
-%                     drawnow
-%                     plot(c,d,'.','color','blue')
-                    if f<estimated_cost
-                        Best_Node = NewNodeR;
-                        estimated_cost = f;
-                        best_g = g;
-                        best_h = h;
+                    Nodes(:,:,i) = NewNodeR;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
+                    if live_status == 1
+                        drawnow 
+                    end
+                    plot(NewNodeR(1),NewNodeR(2),'.','color','green')
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
                     end
                     
-%                     Nodes(:,:,i) = NewNodeR;
-%                     NodesInfo(:,:,i) = [i,j];
-%                     i = i+1;
-%                     if live_status == 1
-%                         drawnow 
-%                     end
-%                     plot(c,d,'.','color','red')
-%                     if NewNodeR(1) == GoalNode(1) && NewNodeR(2) == GoalNode(2)
-%                         break
-%                     end
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeR(1)-GoalNode(1))^2)+((NewNodeR(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
+                if NewNodeR(1) == GoalNode(1) && NewNodeR(2) == GoalNode(2)
+                    break
+                end   
             end
-        end
-
+        end  
+        
         [StatusU, NewNodeU] = ActionMoveUp(CurrentNode);
         if StatusU == true
-            if (any(all(bsxfun(@eq,Nodes,NewNodeU)))) == false
-                c = NewNodeU(1);
-                d = NewNodeU(2);
-                in = insidepoly_halfplane(c,d);
-                if in == false
-                    ctc = NodesInfo(:,5,j);
-                    g = ctc+sqrt(((c-CurrentNode(1))^2)+((d-CurrentNode(2))^2));
-                    h = sqrt(((c-GoalNode(1))^2)+((d-GoalNode(2))^2));
+            in = insidepoly_halfplane(NewNodeU(1),NewNodeU(2));
+            id_test = getid(NewNodeU);
+            % Search if the New Node generated is present in Nodes array or not. 
+            if in == false
+                % Save the node only if the node generated in not inside
+                % the obstacle
+                if (~any(id_test == NodesInfo(1,6,:))) 
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeU(1)-GoalNode(1))^2)+((NewNodeU(2)-GoalNode(2))^2)));
                     f = g+h;
-%                     drawnow
-%                     plot(c,d,'.','color','blue')
-                    if f<estimated_cost
-                        Best_Node = NewNodeU;
-                        estimated_cost = f;
-                        best_g = g;
-                        best_h = h;
+                    Nodes(:,:,i) = NewNodeU;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
+                    if live_status == 1
+                        drawnow 
+                    end
+                    plot(NewNodeU(1),NewNodeU(2),'.','color','green')
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
                     end
                     
-%                     Nodes(:,:,i) = NewNodeU;
-%                     NodesInfo(:,:,i) = [i,j];
-%                     i = i+1;
-%                     if live_status == 1
-%                         drawnow 
-%                     end
-%                     plot(c,d,'.','color','red')
-%                     if NewNodeU(1) == GoalNode(1) && NewNodeU(2) == GoalNode(2)
-%                         break
-%                     end
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeU(1)-GoalNode(1))^2)+((NewNodeU(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
+                if NewNodeU(1) == GoalNode(1) && NewNodeU(2) == GoalNode(2)
+                    break
+                end   
             end
         end
-
+        
         [StatusD, NewNodeD] = ActionMoveDown(CurrentNode);
         if StatusD == true
-            if (any(all(bsxfun(@eq,Nodes,NewNodeD)))) == false
-                c = NewNodeD(1);
-                d = NewNodeD(2);
-                in = insidepoly_halfplane(c,d);
-                if in == false
-                    ctc = NodesInfo(:,5,j);
-                    g = ctc+sqrt(((c-CurrentNode(1))^2)+((d-CurrentNode(2))^2));
-                    h = sqrt(((c-GoalNode(1))^2)+((d-GoalNode(2))^2));
+            in = insidepoly_halfplane(NewNodeD(1),NewNodeD(2));
+            id_test = getid(NewNodeD);
+            % Search if the New Node generated is present in Nodes array or not. 
+            if in == false
+                % Save the node only if the node generated in not inside
+                % the obstacle
+                if (~any(id_test == NodesInfo(1,6,:))) 
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeD(1)-GoalNode(1))^2)+((NewNodeD(2)-GoalNode(2))^2)));
                     f = g+h;
-%                     drawnow
-%                     plot(c,d,'.','color','blue')
-                    if f<estimated_cost
-                        Best_Node = NewNodeD;
-                        estimated_cost = f;
-                        best_g = g;
-                        best_h = h;
+                    Nodes(:,:,i) = NewNodeD;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
+                    if live_status == 1
+                        drawnow 
+                    end
+                    plot(NewNodeD(1),NewNodeD(2),'.','color','green')
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
                     end
                     
-%                     Nodes(:,:,i) = NewNodeD;
-%                     NodesInfo(:,:,i) = [i,j];
-%                     i = i+1;
-%                     if live_status == 1
-%                         drawnow 
-%                     end
-%                     plot(c,d,'.','color','red') 
-%                     if NewNodeD(1) == GoalNode(1) && NewNodeD(2) == GoalNode(2)
-%                         break
-%                     end
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeD(1)-GoalNode(1))^2)+((NewNodeD(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
+                if NewNodeD(1) == GoalNode(1) && NewNodeD(2) == GoalNode(2)
+                    break
+                end   
             end
         end
-
+        
         [StatusDL, NewNodeDL] = ActionMoveDownLeft(CurrentNode);
         if StatusDL == true
-            if (any(all(bsxfun(@eq,Nodes,NewNodeDL)))) == false
-                c = NewNodeDL(1);
-                d = NewNodeDL(2);
-                in = insidepoly_halfplane(c,d);
-                if in == false 
-                    ctc = NodesInfo(:,5,j);
-                    g = ctc+sqrt(((c-CurrentNode(1))^2)+((d-CurrentNode(2))^2));
-                    h = sqrt(((c-GoalNode(1))^2)+((d-GoalNode(2))^2));
+            in = insidepoly_halfplane(NewNodeDL(1),NewNodeDL(2));
+            id_test = getid(NewNodeDL);
+            % Search if the New Node generated is present in Nodes array or not. 
+            if in == false
+                % Save the node only if the node generated in not inside
+                % the obstacle
+                if (~any(id_test == NodesInfo(1,6,:))) 
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeDL(1)-GoalNode(1))^2)+((NewNodeDL(2)-GoalNode(2))^2)));
                     f = g+h;
-%                     drawnow
-%                     plot(c,d,'.','color','blue')
-                    if f<estimated_cost
-                        Best_Node = NewNodeDL;
-                        estimated_cost = f;
-                        best_g = g;
-                        best_h = h;
+                    Nodes(:,:,i) = NewNodeDL;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
+                    if live_status == 1
+                        drawnow 
+                    end
+                    plot(NewNodeDL(1),NewNodeDL(2),'.','color','green')
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
                     end
                     
-%                     Nodes(:,:,i) = NewNodeDL;
-%                     NodesInfo(:,:,i) = [i,j];
-%                     i = i+1;
-%                     if live_status == 1
-%                         drawnow 
-%                     end
-%                     plot(c,d,'.','color','red') 
-%                     if NewNodeDL(1) == GoalNode(1) && NewNodeDL(2) == GoalNode(2)
-%                         break
-%                     end
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeDL(1)-GoalNode(1))^2)+((NewNodeDL(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
+                if NewNodeDL(1) == GoalNode(1) && NewNodeDL(2) == GoalNode(2)
+                    break
+                end   
             end
         end
-
+        
         [StatusDR, NewNodeDR] = ActionMoveDownRight(CurrentNode);
         if StatusDR == true
-            if (any(all(bsxfun(@eq,Nodes,NewNodeDR)))) == false
-                c = NewNodeDR(1);
-                d = NewNodeDR(2);
-                in = insidepoly_halfplane(c,d);
-                if in == false 
-                    ctc = NodesInfo(:,5,j);
-                    g = ctc+sqrt(((c-CurrentNode(1))^2)+((d-CurrentNode(2))^2));
-                    h = sqrt(((c-GoalNode(1))^2)+((d-GoalNode(2))^2));
+            in = insidepoly_halfplane(NewNodeDR(1),NewNodeDR(2));
+            id_test = getid(NewNodeDR);
+            % Search if the New Node generated is present in Nodes array or not. 
+            if in == false
+                % Save the node only if the node generated in not inside
+                % the obstacle
+                if (~any(id_test == NodesInfo(1,6,:))) 
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeDR(1)-GoalNode(1))^2)+((NewNodeDR(2)-GoalNode(2))^2)));
                     f = g+h;
-%                     drawnow
-%                     plot(c,d,'.','color','blue')
-                    if f<estimated_cost
-                        Best_Node = NewNodeDR;
-                        estimated_cost = f;
-                        best_g = g;
-                        best_h = h;
+                    Nodes(:,:,i) = NewNodeDR;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
+                    if live_status == 1
+                        drawnow 
+                    end
+                    plot(NewNodeDR(1),NewNodeDR(2),'.','color','green')
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
                     end
                     
-%                     Nodes(:,:,i) = NewNodeDR;
-%                     NodesInfo(:,:,i) = [i,j];
-%                     i = i+1;
-%                     if live_status == 1
-%                         drawnow 
-%                     end
-%                     plot(c,d,'.','color','red')
-%                     if NewNodeDR(1) == GoalNode(1) && NewNodeDR(2) == GoalNode(2)
-%                         break
-%                     end
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeDR(1)-GoalNode(1))^2)+((NewNodeDR(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
+                if NewNodeDR(1) == GoalNode(1) && NewNodeDR(2) == GoalNode(2)
+                    break
+                end   
             end
         end
-
+        
         [StatusUL, NewNodeUL] = ActionMoveUpLeft(CurrentNode);
         if StatusUL == true
-            if (any(all(bsxfun(@eq,Nodes,NewNodeUL)))) == false
-                c = NewNodeUL(1);
-                d = NewNodeUL(2);
-                in = insidepoly_halfplane(c,d);
-                if in == false 
-                    ctc = NodesInfo(:,5,j);
-                    g = ctc+sqrt(((c-CurrentNode(1))^2)+((d-CurrentNode(2))^2));
-                    h = sqrt(((c-GoalNode(1))^2)+((d-GoalNode(2))^2));
+            in = insidepoly_halfplane(NewNodeUL(1),NewNodeUL(2));
+            id_test = getid(NewNodeUL);
+            % Search if the New Node generated is present in Nodes array or not. 
+            if in == false
+                % Save the node only if the node generated in not inside
+                % the obstacle
+                if (~any(id_test == NodesInfo(1,6,:))) 
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeUL(1)-GoalNode(1))^2)+((NewNodeUL(2)-GoalNode(2))^2)));
                     f = g+h;
-%                     drawnow
-%                     plot(c,d,'.','color','blue')
-                    if f<estimated_cost
-                        Best_Node = NewNodeUL;
-                        estimated_cost = f;
-                        best_g = g;
-                        best_h = h;
+                    Nodes(:,:,i) = NewNodeUL;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
+                    if live_status == 1
+                        drawnow 
+                    end
+                    plot(NewNodeUL(1),NewNodeUL(2),'.','color','green')
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
                     end
                     
-%                     Nodes(:,:,i) = NewNodeUL;
-%                     NodesInfo(:,:,i) = [i,j];
-%                     i = i+1;
-%                     if live_status == 1
-%                         drawnow 
-%                     end
-%                     plot(c,d,'.','color','red')
-%                     if NewNodeUL(1) == GoalNode(1) && NewNodeUL(2) == GoalNode(2)
-%                         break
-%                     end
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeUL(1)-GoalNode(1))^2)+((NewNodeUL(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
                 end
+                if NewNodeUL(1) == GoalNode(1) && NewNodeUL(2) == GoalNode(2)
+                    break
+                end   
             end
         end
-
+        
         [StatusUR, NewNodeUR] = ActionMoveUpRight(CurrentNode);
         if StatusUR == true
-            if (any(all(bsxfun(@eq,Nodes,NewNodeUR)))) == false
-                c = NewNodeUR(1);
-                d = NewNodeUR(2);
-                in = insidepoly_halfplane(c,d);
-                if in == false 
-                    ctc = NodesInfo(:,5,j);
-                    g = ctc+sqrt(((c-CurrentNode(1))^2)+((d-CurrentNode(2))^2));
-                    h = sqrt(((c-GoalNode(1))^2)+((d-GoalNode(2))^2));
+            in = insidepoly_halfplane(NewNodeUR(1),NewNodeUR(2));
+            id_test = getid(NewNodeUR);
+            % Search if the New Node generated is present in Nodes array or not. 
+            if in == false
+                % Save the node only if the node generated in not inside
+                % the obstacle
+                if (~any(id_test == NodesInfo(1,6,:))) 
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc + cost_linear;
+                    h = (sqrt(((NewNodeUR(1)-GoalNode(1))^2)+((NewNodeUR(2)-GoalNode(2))^2)));
                     f = g+h;
-%                     drawnow
-%                     plot(c,d,'.','color','blue')
-                    if f<estimated_cost
-                        Best_Node = NewNodeUR;
-                        estimated_cost = f;
-                        best_g = g;
-                        best_h = h;
+                    Nodes(:,:,i) = NewNodeUR;
+                    NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    i = i+1;                    
+                    if live_status == 1
+                        drawnow 
+                    end
+                    plot(NewNodeUR(1),NewNodeUR(2),'.','color','green')
+                    if Video == 1
+                        writeVideo(Output_Video,getframe);
                     end
                     
-%                     Nodes(:,:,i) = NewNodeUR;
-%                     NodesInfo(:,:,i) = [i,j];
-%                     i = i+1;
-%                     if live_status == 1
-%                         drawnow 
-%                     end
-%                     plot(c,d,'.','color','red')
-%                     if NewNodeUR(1) == GoalNode(1) && NewNodeUR(2) == GoalNode(2)
-%                         break
-%                     end
+                elseif  (~any(id_test == ClosedNodesInfo(1,1,:)))
+                    k = find(id_test == NodesInfo(1,6,:));
+                    cost = NodesInfo(1,5,k);
+                    ctc = NodesInfo(:,3,j);
+                    g = ctc+cost_linear;
+                    h = sqrt(((NewNodeUR(1)-GoalNode(1))^2)+((NewNodeUR(2)-GoalNode(2))^2));
+                    f = g+h;
+                    if cost>f
+                        NodesInfo(:,:,k) = [i,j,g,h,f,id_test];
+                    end
+                end
+                if NewNodeUR(1) == GoalNode(1) && NewNodeUR(2) == GoalNode(2)
+                    break
+                end   
+            end
+        end    
+        
+        min_cost = [inf,0];
+        for y = 1:i-1
+        id_test = getid(Nodes(:,:,y));
+            if (~any(id_test == ClosedNodesInfo(1,1,:)))
+                cost = NodesInfo(1,5,y);
+                if cost<min_cost(1,1)
+                    min_cost = [cost , y];
                 end
             end
-        end
-        drawnow
-        plot(Best_Node(1),Best_Node(2),'.','color','red')
-        if Best_Node(1) == GoalNode(1) && Best_Node(2) == GoalNode(2)
-            break
-        end
-        Nodes(:,:,i) = Best_Node;
-        NodesInfo(:,:,i) = [i,j,best_g,best_h,estimated_cost];
-        i = i+1;
-        j=j+1
-    end
 
-%     k = i-1;
-%     count = 0;
-%     
-%     
-%     
-%     while k ~= 1 
-%         NodesInfo(:,:,k);
-%         a = Nodes(1,1,k);
-%         b = Nodes(1,2,k); 
-%         info = NodesInfo((2*k));
-%         k = info;
-%         count = count+1;
-%         plot(a,b,'.','color','blue')
-%     end
+        end
+
+        j = min_cost(1,2);
+        z = z+1;
+        if rem(z,10) == 0
+            z
+        end
+            
+            
+        
+    end
+    
+    q = i-1;
+    count = 0;
+    
+    
+    
+    while q ~= 1 
+        NodesInfo(:,:,q);
+        a = Nodes(1,1,q);
+        b = Nodes(1,2,q); 
+        info = NodesInfo(1,2,q);
+        q = info;
+        count = count+1;
+        plot(a,b,'.','color','blue')
+        
+    end
+    if Video == 1
+        writeVideo(Output_Video,getframe);
+    end
+    
+
 end
-% 
-% % Save the Nodes and NodesInfo to the directory folder. 
-% save('Nodes.mat','Nodes');
-% save('NodesInfo.mat','NodesInfo');
 
 toc
+if Video == 1
+    close(Output_Video)
+end
