@@ -530,9 +530,10 @@ if status
         q = info;
         count = count+1;
         plot(a,b,'.','color','blue')
-        if Video == 1
-            writeVideo(Output_Video,getframe);
-        end
+        
+    end
+    if Video == 1
+        writeVideo(Output_Video,getframe);
     end
     
 
