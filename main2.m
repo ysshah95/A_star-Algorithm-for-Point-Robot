@@ -10,12 +10,12 @@
 
 %==========================================================================
 
-clc
+% clc
 % clear all
 close all
 
 live_status = 0; % Change this to 1 to see node generation live on image 
-Video = 1;
+Video = 0;
 
 if Video == 1
     Output_Video = VideoWriter('Result');
@@ -70,19 +70,28 @@ hold on
 
 status = false; % This variable becomes true only if all the points are in the free space 
 while ~status
+    
+    title("Select Start and End Points on the Graph")
+    
+    [r c] = ginput(2);
+    
+    x_s = round(r(1),0);
+    y_s = round(c(1),0);
+    x_g = round(r(2),0);
+    y_g = round(c(2),0);
 
-    prompt_x_start = 'Enter X Coordinate of Starting Point between 0 to 250:  ';
-    x_s = input(prompt_x_start);
-    
-    prompt_y_start = 'Enter Y Coordinate of Starting Point between 0 to 150:  ';
-    y_s = input(prompt_y_start);
-    
-    prompt_x_goal = 'Enter X Coordinate of Goal Point between 0 to 250:  ';
-    x_g = input(prompt_x_goal);
-    
-    prompt_y_goal = 'Enter Y Coordinate of Goal Point between 0 to 150:  ';
-    y_g = input(prompt_y_goal);
-    
+%     prompt_x_start = 'Enter X Coordinate of Starting Point between 0 to 250:  ';
+%     x_s = input(prompt_x_start);
+%     
+%     prompt_y_start = 'Enter Y Coordinate of Starting Point between 0 to 150:  ';
+%     y_s = input(prompt_y_start);
+%     
+%     prompt_x_goal = 'Enter X Coordinate of Goal Point between 0 to 250:  ';
+%     x_g = input(prompt_x_goal);
+%     
+%     prompt_y_goal = 'Enter Y Coordinate of Goal Point between 0 to 150:  ';
+%     y_g = input(prompt_y_goal);
+%     
     StartNode = [x_s,y_s];
     GoalNode = [x_g,y_g];
     
@@ -109,27 +118,29 @@ while ~status
     end
 end
 
-tic
-
 % PLot the start and End node 
 drawnow 
 plot(StartNode(1),StartNode(2),'s','color','green','markers',10)
 drawnow 
 plot(GoalNode(1),GoalNode(2),'s','color','red','markers',10)
+title("Searching for the Optimum Path")
 hold on 
+
 
 txt1 = '\leftarrow Start Node';
 txt2 = '\leftarrow Goal Node';
 
 
-
+drawnow
 text(StartNode(1),StartNode(2),txt1)
 text(GoalNode(1),GoalNode(2),txt2)
+hold on
 
-
+% tic
 
 % Start BFS algorithm only if status is true (i.e all the points are in
 % free space)
+
 
 if status 
     
@@ -157,6 +168,7 @@ if status
     while true
         % Initialize the parent node in each loop
         CurrentNode = Nodes(:,:,j);
+        
         ClosedNodes(:,:,z) = CurrentNode;
         id = getid(CurrentNode);
         ClosedNodesInfo(:,:,z) = [id];
@@ -175,13 +187,16 @@ if status
             if in == false
                 % Save the node only if the node generated in not inside
                 % the obstacle
+%                 tic
                 if (~any(id_test == NodesInfo(1,6,:))) 
+%                     toc
                     ctc = NodesInfo(:,3,j);
                     g = ctc + cost_linear;
                     h = (sqrt(((NewNodeL(1)-GoalNode(1))^2)+((NewNodeL(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeL;
                     NodesInfo(:,:,i) = [i,j,g,h,f,id_test];
+                    OpenNode(:,:,i) = [id_test,f];
                     i = i+1;                    
                     if live_status == 1
                         drawnow 
@@ -495,6 +510,8 @@ if status
             end
         end    
         
+%         tic
+        
         min_cost = [inf,0];
         for y = 1:i-1
         id_test = getid(Nodes(:,:,y));
@@ -504,16 +521,15 @@ if status
                     min_cost = [cost , y];
                 end
             end
-
         end
+        
+%         toc
 
         j = min_cost(1,2);
         z = z+1;
-        if rem(z,10) == 0
-            z
-        end
-            
-            
+%         if rem(z,10) == 0
+%             z
+%         end
         
     end
     
@@ -530,6 +546,7 @@ if status
         q = info;
         count = count+1;
         plot(a,b,'.','color','blue')
+        title("Hurray..!! Optimum path Found. The path is shown with Blue Dots")
         
     end
     if Video == 1
@@ -540,6 +557,7 @@ if status
 end
 
 toc
+
 if Video == 1
     close(Output_Video)
 end
