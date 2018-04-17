@@ -25,54 +25,54 @@ end
 
 % Defining the whole plot from the given coordinates
 
-%% Plotting Obstacle
-%% 
-x2 = [-7.33 -6.55 -6.55 -7.33]+8;
-y2 = [2.725 2.725  0.725 0.725]+5;
+% Plotting Obstacle
+
+x2 = ([-7.33 -6.55 -6.55 -7.33]+8)*10;
+y2 = ([2.725 2.725  0.725 0.725]+5)*10;
 fill(x2,y2,'k')
 drawnow
 hold on 
-x3 = [-7.35 -6.55 -6.55 -7.33]+8;
-y3 = [0.725 0.725 -1.275 -1.275]+5;
+x3 = ([-7.35 -6.55 -6.55 -7.33]+8)*10;
+y3 = ([0.725 0.725 -1.275 -1.275]+5)*10;
 fill(x3,y3,'k')
 drawnow
-%% yellow
+
 hold on 
-x4 = [-6.15 -4.55 -4.55 -6.15]+8;
-y4 = [ -3.55 -3.55 -4.65 -4.65]+5;
+x4 = ([-6.15 -4.55 -4.55 -6.15]+8)*10;
+y4 = ([-3.55 -3.55 -4.65 -4.65]+5)*10;
 fill(x4,y4,'k')
 drawnow
-%% R1
+
 hold on 
-x5 = [ 5.125 5.925 5.925 5.125]+8;
-y5 = [ -2.375 -2.375 -4.375 -4.375]+5;
+x5 = ([5.125 5.925 5.925 5.125]+8)*10;
+y5 = ([-2.375 -2.375 -4.375 -4.375]+5)*10;
 fill(x5,y5,'k')
 drawnow
-%% R2
+
 hold on 
-x6 = [3.925 4.725 4.725 3.925]+8;
-y6 = [-2.375 -2.375 -4.375 -4.375]+5;
+x6 = ([3.925 4.725 4.725 3.925]+8)*10;
+y6 = ([-2.375 -2.375 -4.375 -4.375]+5)*10;
 fill(x6,y6,'k')
 drawnow
 hold on 
 
-x7 = [-3.0025 -2.224 -2.224 -3.0025]+8;
-y7 = [ 0.8  0.8  -0.8 -0.8]+5;
+x7 = ([-3.4 -1.8 -1.8 -3.4]+8)*10;
+y7 = ([ 1.6  1.6  -1.6 -1.6]+5)*10;
 fill(x7,y7,'k')
 drawnow
 hold on 
-x8 = [0.771 1.523 1.523 0.771]+8;
-y8= [ 0.8  0.8  -0.8 -0.8]+5;
+x8 = 10*([0.3475 1.9475 1.9475 0.3475]+8);
+y8= ([1.6  1.6  -1.6 -1.6]+5)*10;
 fill(x8,y8,'k')
 drawnow
 hold on
 
 % walls
-x = [-7.4 7.4]+8;
-y = [-4.925 +4.9925]+5;
+x = ([-7.425 7.425]+8)*10;
+y = ([-4.925 +4.925]+5)*10;
 
-xlim([x(1) x(2)])
-ylim([y(1) y(2)])
+xlim([0 x(2)])
+ylim([0 y(2)])
 
 status = false; % This variable becomes true only if all the points are in the free space 
 while ~status
@@ -97,8 +97,8 @@ while ~status
 %     y_g = input(prompt_y_goal);
      
 
-    x_s = 7+8;
-    y_s = 4+5;
+    x_s = (7+8)*10;
+    y_s = (4+5)*10;
 
     StartNode = [x_s,y_s];
     GoalNode = [x_g,y_g];
@@ -115,12 +115,12 @@ while ~status
     elseif in_goal
         status = false;
         disp('The goal point provided is inside the obstacle.');
-    elseif (x_s<0 || x_s>250) || (y_s<0 || y_s>150)
-        status = false;
-        disp('The start point provided is not in the given workspace.')
-    elseif  (x_g<0 || x_g>250) || (y_g<0 || y_g>=250)
-        status = false;
-        disp('The goal point point provided is not in the given workspace.')
+%     elseif (x_s<0 || x_s>250) || (y_s<0 || y_s>150)
+%         status = false;
+%         disp('The start point provided is not in the given workspace.')
+%     elseif  (x_g<0 || x_g>250) || (y_g<0 || y_g>=250)
+%         status = false;
+%         disp('The goal point point provided is not in the given workspace.')
     else
         status = true;
     end
@@ -365,7 +365,7 @@ if status
                 % the obstacle
                 if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc + cost_linear;
+                    g = ctc + cost_diag;
                     h = (sqrt(((NewNodeDL(1)-GoalNode(1))^2)+((NewNodeDL(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeDL;
@@ -383,7 +383,7 @@ if status
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_linear;
+                    g = ctc+cost_diag;
                     h = sqrt(((NewNodeDL(1)-GoalNode(1))^2)+((NewNodeDL(2)-GoalNode(2))^2));
                     f = g+h;
                     if cost>f
@@ -406,7 +406,7 @@ if status
                 % the obstacle
                 if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc + cost_linear;
+                    g = ctc + cost_diag;
                     h = (sqrt(((NewNodeDR(1)-GoalNode(1))^2)+((NewNodeDR(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeDR;
@@ -424,7 +424,7 @@ if status
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_linear;
+                    g = ctc+cost_diag;
                     h = sqrt(((NewNodeDR(1)-GoalNode(1))^2)+((NewNodeDR(2)-GoalNode(2))^2));
                     f = g+h;
                     if cost>f
@@ -447,7 +447,7 @@ if status
                 % the obstacle
                 if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc + cost_linear;
+                    g = ctc + cost_diag;
                     h = (sqrt(((NewNodeUL(1)-GoalNode(1))^2)+((NewNodeUL(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeUL;
@@ -465,7 +465,7 @@ if status
                     k = find(id_test == NodesInfo(1,6,:));
                     cost = NodesInfo(1,5,k);
                     ctc = NodesInfo(:,3,j);
-                    g = ctc+cost_linear;
+                    g = ctc+cost_diag;
                     h = sqrt(((NewNodeUL(1)-GoalNode(1))^2)+((NewNodeUL(2)-GoalNode(2))^2));
                     f = g+h;
                     if cost>f
@@ -488,7 +488,7 @@ if status
                 % the obstacle
                 if (~any(id_test == NodesInfo(1,6,:))) 
                     ctc = NodesInfo(:,3,j);
-                    g = ctc + cost_linear;
+                    g = ctc + cost_diag;
                     h = (sqrt(((NewNodeUR(1)-GoalNode(1))^2)+((NewNodeUR(2)-GoalNode(2))^2)));
                     f = g+h;
                     Nodes(:,:,i) = NewNodeUR;
@@ -545,7 +545,7 @@ if status
     q = i-1;
     count = 0;
     
-    
+    path = [];
     
     while q ~= 1 
         NodesInfo(:,:,q);
@@ -556,11 +556,22 @@ if status
         count = count+1;
         plot(a,b,'.','color','blue')
         title("Hurray..!! Optimum path Found. The path is shown with Blue Dots")
-        
+        a1 =(a/10)-8;
+        b1 = (b/10)-5;
+        path = [path;[a1 b1]];
     end
+    NodesInfo(:,:,q);
+    a = Nodes(1,1,q);
+    b = Nodes(1,2,q); 
+    a1 = (a/10)-8;
+    b1 = (b/10)-5;
+    path = [path;[a1 b1]]
+    
     if Video == 1
         writeVideo(Output_Video,getframe);
     end
+    
+    
     
 
 end
@@ -571,5 +582,5 @@ if Video == 1
     close(Output_Video)
 end
 
-
+save('Path.mat','path')   
 
